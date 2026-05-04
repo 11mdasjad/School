@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,15 +9,50 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { demoLeaveRequests, demoStudents } from '@/lib/demo-data';
+import { useAuthStore } from '@/stores/auth-store';
 import { getStatusColor, formatDate } from '@/lib/utils';
 import { Plus, FileText, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function StudentLeavePage() {
+  const { students, parents, leaveRequests, addLeaveRequest } = useAppStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const student = demoStudents[0];
-  const myLeaves = demoLeaveRequests.filter(l => l.student_id === student.id);
+  const { user } = useAuthStore();
+
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [reason, setReason] = useState('');
+
+  let student = students.find(s => s.profile_id === user?.id);
+  if (!student && user?.role === 'parent') {
+    const parent = parents.find(p => p.profile_id === user.id);
+    student = students.find(s => s.parent_id === parent?.id);
+  }
+  student = student || students[0];
+  const myLeaves = leaveRequests.filter(l => l.student_id === student.id);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fromDate || !toDate || !reason) {
+      toast.error('Please fill all fields');
+      return;
+    }
+    addLeaveRequest({
+      id: `lr-${Date.now()}`,
+      student_id: student.id,
+      requested_by: user?.id || student.profile_id,
+      from_date: fromDate,
+      to_date: toDate,
+      reason,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+    toast.success('Leave request submitted successfully');
+    setDialogOpen(false);
+    setFromDate('');
+    setToDate('');
+    setReason('');
+  };
 
   return (
     <div className="space-y-6">
@@ -25,9 +61,9 @@ export default function StudentLeavePage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"><Plus className="w-4 h-4 mr-2" /> Apply for Leave</Button> } />
           <DialogContent><DialogHeader><DialogTitle>Apply for Leave</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Leave request submitted (demo)'); setDialogOpen(false); }}>
-              <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>From Date</Label><Input type="date" /></div><div className="space-y-2"><Label>To Date</Label><Input type="date" /></div></div>
-              <div className="space-y-2"><Label>Reason</Label><Textarea placeholder="Please provide a detailed reason for leave..." rows={4} /></div>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>From Date</Label><Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} /></div><div className="space-y-2"><Label>To Date</Label><Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} /></div></div>
+              <div className="space-y-2"><Label>Reason</Label><Textarea placeholder="Please provide a detailed reason for leave..." rows={4} value={reason} onChange={e => setReason(e.target.value)} /></div>
               <div className="flex justify-end gap-3"><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Submit Request</Button></div>
             </form>
           </DialogContent>

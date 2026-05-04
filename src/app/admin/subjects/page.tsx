@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { useState } from 'react';
 import { DataTable, Column } from '@/components/common/data-table';
 import { Button } from '@/components/ui/button';
@@ -8,13 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { demoSubjects } from '@/lib/demo-data';
 import { Plus, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SubjectsPage() {
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings, addSubject } = useAppStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const subjects = demoSubjects.map(s => ({ ...s }));
+  const subjects = allSubjects.map(s => ({ ...s }));
 
   const columns: Column<typeof subjects[0]>[] = [
     { key: 'name', label: 'Subject', sortable: true, render: (_v, row) => (
@@ -34,10 +35,27 @@ export default function SubjectsPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"><Plus className="w-4 h-4 mr-2" /> Add Subject</Button> } />
           <DialogContent><DialogHeader><DialogTitle>Add New Subject</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Subject added (demo)'); setDialogOpen(false); }}>
-              <div className="space-y-2"><Label>Subject Name</Label><Input placeholder="Physics" /></div>
-              <div className="space-y-2"><Label>Code</Label><Input placeholder="PHY" /></div>
-              <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Brief description..." /></div>
+            <form className="space-y-4" onSubmit={e => { 
+              e.preventDefault(); 
+              const fd = new FormData(e.currentTarget);
+              const name = fd.get('name') as string || 'New Subject';
+              const code = fd.get('code') as string || 'SUB';
+              const desc = fd.get('description') as string || '';
+              
+              addSubject({
+                id: 'sub' + Date.now(),
+                name: name,
+                code: code,
+                description: desc,
+                created_at: new Date().toISOString()
+              });
+              
+              toast.success('Subject added successfully'); 
+              setDialogOpen(false); 
+            }}>
+              <div className="space-y-2"><Label>Subject Name</Label><Input name="name" placeholder="Physics" required /></div>
+              <div className="space-y-2"><Label>Code</Label><Input name="code" placeholder="PHY" required /></div>
+              <div className="space-y-2"><Label>Description</Label><Textarea name="description" placeholder="Brief description..." /></div>
               <div className="flex justify-end gap-3"><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Add Subject</Button></div>
             </form>
           </DialogContent>

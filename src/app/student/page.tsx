@@ -1,11 +1,13 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { StatCard } from '@/components/common/stat-card';
+import { useAuthStore } from '@/stores/auth-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { demoAttendance, demoStudents, demoClasses, demoSections, getStudentAttendanceStats, demoLeaveRequests, demoNotifications, getProfileById } from '@/lib/demo-data';
+import { getStudentAttendanceStats, getProfileById } from '@/lib/store-helpers';
 import { getAttendanceColor, getAttendanceDotColor, formatDate, cn } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import Link from 'next/link';
@@ -14,15 +16,21 @@ import { CalendarCheck, FileText, Bell, ArrowRight, TrendingUp } from 'lucide-re
 const PIE_COLORS = ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#a855f7'];
 
 export default function StudentDashboard() {
-  // Demo student: st1 (Alex Johnson)
-  const student = demoStudents[0];
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings } = useAppStore();
+  const { user } = useAuthStore();
+  let student = allStudents.find(s => s.profile_id === user?.id);
+  if (!student && user?.role === 'parent') {
+    const parent = allParents.find(p => p.profile_id === user.id);
+    student = allStudents.find(s => s.parent_id === parent?.id);
+  }
+  student = student || allStudents[0];
   const profile = getProfileById(student.profile_id)!;
   const stats = getStudentAttendanceStats(student.id);
-  const cls = demoClasses.find(c => c.id === student.class_id)!;
-  const section = demoSections.find(s => s.id === student.section_id)!;
-  const myLeaves = demoLeaveRequests.filter(l => l.student_id === student.id);
-  const myNotifications = demoNotifications.filter(n => !n.recipient_role || n.recipient_role === 'student' || n.recipient_user_id === profile.id).slice(0, 4);
-  const recentAttendance = demoAttendance.filter(a => a.student_id === student.id).sort((a, b) => b.attendance_date.localeCompare(a.attendance_date)).slice(0, 10);
+  const cls = allClasses.find(c => c.id === student.class_id)!;
+  const section = allSections.find(s => s.id === student.section_id)!;
+  const myLeaves = allLeaveRequests.filter(l => l.student_id === student.id);
+  const myNotifications = allNotifications.filter(n => !n.recipient_role || n.recipient_role === 'student' || n.recipient_user_id === profile.id).slice(0, 4);
+  const recentAttendance = allAttendance.filter(a => a.student_id === student.id).sort((a, b) => b.attendance_date.localeCompare(a.attendance_date)).slice(0, 10);
 
   const pieData = [
     { name: 'Present', value: stats.present },

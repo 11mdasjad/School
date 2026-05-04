@@ -6,16 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { demoLeaveRequests, demoStudents, getProfileById } from '@/lib/demo-data';
+import { getProfileById } from '@/lib/store-helpers';
+import { useAppStore } from '@/stores/app-store';
 import { getInitials, getStatusColor, formatDate } from '@/lib/utils';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function LeaveRequestsPage() {
-  const [leaves, setLeaves] = useState(demoLeaveRequests);
+  const { leaveRequests: leaves, updateLeaveRequestStatus, students } = useAppStore();
+  const { user } = useAuthStore();
 
   const handleAction = (id: string, action: 'approved' | 'rejected') => {
-    setLeaves(prev => prev.map(l => l.id === id ? { ...l, status: action, approved_at: new Date().toISOString() } : l));
+    updateLeaveRequestStatus(id, action, user?.id || 'admin');
     toast.success(`Leave request ${action}`);
   };
 
@@ -24,7 +27,7 @@ export default function LeaveRequestsPage() {
     if (filtered.length === 0) return <p className="text-center py-12 text-muted-foreground">No {filter} leave requests</p>;
 
     return filtered.map(leave => {
-      const student = demoStudents.find(s => s.id === leave.student_id);
+      const student = students.find(s => s.id === leave.student_id);
       const profile = student ? getProfileById(student.profile_id) : null;
       const requester = getProfileById(leave.requested_by);
 

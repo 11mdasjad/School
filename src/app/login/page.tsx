@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormData } from '@/lib/validations';
 import { useAuthStore } from '@/stores/auth-store';
-import { DEMO_CREDENTIALS, ROLES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +29,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -46,13 +44,6 @@ export default function LoginPage() {
     } else {
       toast.error(result.error || 'Login failed');
     }
-  };
-
-  const handleDemoLogin = (role: UserRole) => {
-    const creds = DEMO_CREDENTIALS[role];
-    form.setValue('phone', creds.phone);
-    form.setValue('password', creds.password);
-    setSelectedRole(role);
   };
 
   return (
@@ -103,38 +94,7 @@ export default function LoginPage() {
             <p className="text-muted-foreground">Sign in with your registered mobile number</p>
           </div>
 
-          {/* Demo Role Buttons */}
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            {ROLES.map(role => {
-              const Icon = roleIcons[role.value];
-              return (
-                <button
-                  key={role.value}
-                  type="button"
-                  onClick={() => handleDemoLogin(role.value)}
-                  className={cn(
-                    "flex items-center gap-2.5 p-3 rounded-xl border-2 transition-all duration-200 text-left",
-                    selectedRole === role.value
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                      : "border-border hover:border-blue-300 hover:bg-muted/50"
-                  )}
-                >
-                  <div className={cn("w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center shrink-0 shadow", roleColors[role.value])}>
-                    <Icon className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{role.label}</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight">{role.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-3 text-muted-foreground">or enter credentials</span></div>
-          </div>
+          {/* Login Form */}
 
           {/* Login Form */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -206,22 +166,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Demo credentials hint */}
-          <Card className="mt-6 border-dashed bg-muted/30">
-            <CardContent className="p-4">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Login Credentials:</p>
-              <div className="grid grid-cols-1 gap-1.5 text-xs text-muted-foreground">
-                {Object.entries(DEMO_CREDENTIALS).map(([role, creds]) => (
-                  <div key={role} className="flex items-center gap-2">
-                    <span className="capitalize font-semibold text-foreground w-14">{role}:</span>
-                    <span className="font-mono">{creds.phone}</span>
-                    <span className="text-muted-foreground/70">({creds.name})</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Password: <span className="font-mono">{'[role]123'}</span></p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

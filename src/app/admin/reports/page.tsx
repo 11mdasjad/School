@@ -1,11 +1,12 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getMonthlyTrend, getClassWiseComparison, getDefaulterList, demoStudents, getProfileById, getStudentAttendanceStats, demoClasses, demoSections } from '@/lib/demo-data';
+import { getMonthlyTrend, getClassWiseComparison, getDefaulterList, getProfileById, getStudentAttendanceStats } from '@/lib/store-helpers';
 import { exportToCSV } from '@/lib/utils';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Download, FileText, TrendingUp, Users, AlertTriangle } from 'lucide-react';
@@ -14,15 +15,16 @@ import { toast } from 'sonner';
 const PIE_COLORS = ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#a855f7'];
 
 export default function ReportsPage() {
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings } = useAppStore();
   const monthlyTrend = getMonthlyTrend();
   const classComparison = getClassWiseComparison();
   const defaulters = getDefaulterList(75);
 
   const handleExportCSV = () => {
-    const data = demoStudents.map(s => {
+    const data = allStudents.map(s => {
       const p = getProfileById(s.profile_id);
       const stats = getStudentAttendanceStats(s.id);
-      const cls = demoClasses.find(c => c.id === s.class_id);
+      const cls = allClasses.find(c => c.id === s.class_id);
       return { Name: p?.full_name, Class: cls?.name, Roll: s.roll_no, Present: stats.present, Absent: stats.absent, Late: stats.late, Percentage: `${stats.percentage}%` };
     });
     exportToCSV(data, 'attendance_report');
@@ -32,7 +34,7 @@ export default function ReportsPage() {
   const overallStats = {
     totalDays: monthlyTrend.length,
     avgAttendance: Math.round(monthlyTrend.reduce((a, b) => a + b.percentage, 0) / monthlyTrend.length),
-    totalStudents: demoStudents.length,
+    totalStudents: allStudents.length,
     defaulterCount: defaulters.length,
   };
 
@@ -153,7 +155,7 @@ export default function ReportsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b"><th className="text-left py-2 px-3 font-medium">Student</th><th className="text-center py-2 px-3 font-medium">Present</th><th className="text-center py-2 px-3 font-medium">Absent</th><th className="text-center py-2 px-3 font-medium">Late</th><th className="text-center py-2 px-3 font-medium">Total</th><th className="text-center py-2 px-3 font-medium">%</th></tr></thead>
-                  <tbody>{demoStudents.map(s => {
+                  <tbody>{allStudents.map(s => {
                     const stats = getStudentAttendanceStats(s.id);
                     const profile = getProfileById(s.profile_id);
                     return (

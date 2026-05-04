@@ -10,7 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { demoStudents, demoClasses, demoSections, demoSubjects, getProfileById } from '@/lib/demo-data';
+import { getProfileById } from '@/lib/store-helpers';
+import { useAppStore } from '@/stores/app-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { getInitials, getAttendanceColor, cn } from '@/lib/utils';
 import { AttendanceStatus } from '@/types';
 import { ATTENDANCE_STATUSES, PERIODS } from '@/constants';
@@ -22,6 +24,8 @@ const statusIcons: Record<string, React.ElementType> = {
 };
 
 export default function AttendancePage() {
+  const { students: allStudents, classes: demoClasses, sections: demoSections, subjects: demoSubjects, addAttendance } = useAppStore();
+  const { user } = useAuthStore();
   const [selectedClass, setSelectedClass] = useState('c1');
   const [selectedSection, setSelectedSection] = useState('s1');
   const [selectedSubject, setSelectedSubject] = useState('sub1');
@@ -35,7 +39,7 @@ export default function AttendancePage() {
 
   const filteredSections = demoSections.filter(s => s.class_id === selectedClass);
   const students = useMemo(() => {
-    let list = demoStudents.filter(s => s.class_id === selectedClass && s.section_id === selectedSection);
+    let list = allStudents.filter(s => s.class_id === selectedClass && s.section_id === selectedSection);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter(s => {
@@ -64,6 +68,20 @@ export default function AttendancePage() {
   };
 
   const handleSave = () => {
+    const records = students.map(s => ({
+      id: `att-${Date.now()}-${s.id}`,
+      student_id: s.id,
+      class_id: selectedClass,
+      section_id: selectedSection,
+      subject_id: selectedSubject,
+      attendance_date: selectedDate,
+      period_no: parseInt(selectedPeriod),
+      status: getStatus(s.id),
+      marked_by: user?.id || 'admin',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+    addAttendance(records);
     toast.success(`Attendance saved for ${students.length} students on ${selectedDate}`);
   };
 

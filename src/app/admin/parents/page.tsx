@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { useState } from 'react';
 import { DataTable, Column } from '@/components/common/data-table';
 import { Button } from '@/components/ui/button';
@@ -8,16 +9,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { demoParents, demoStudents, getProfileById } from '@/lib/demo-data';
+import { getProfileById } from '@/lib/store-helpers';
 import { getInitials } from '@/lib/utils';
 import { Plus, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ParentsPage() {
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings, addParent } = useAppStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const parents = demoParents.map(p => {
+  const parents = allParents.map(p => {
     const profile = getProfileById(p.profile_id);
-    const children = demoStudents.filter(s => s.parent_id === p.id).map(s => getProfileById(s.profile_id)?.full_name).filter(Boolean);
+    const children = allStudents.filter(s => s.parent_id === p.id).map(s => getProfileById(s.profile_id)?.full_name).filter(Boolean);
     return { ...p, name: profile?.full_name || '', email: profile?.email || '', phone: profile?.phone || '', status: profile?.status || 'active', childrenNames: children.join(', '), childCount: children.length };
   });
 
@@ -40,8 +42,29 @@ export default function ParentsPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"><Plus className="w-4 h-4 mr-2" /> Add Parent</Button> } />
           <DialogContent><DialogHeader><DialogTitle>Add New Parent</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Parent added (demo)'); setDialogOpen(false); }}>
-              <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>Full Name</Label><Input /></div><div className="space-y-2"><Label>Email</Label><Input type="email" /></div><div className="space-y-2"><Label>Phone</Label><Input /></div><div className="space-y-2"><Label>Relationship</Label><Input placeholder="Father/Mother" /></div></div>
+            <form className="space-y-4" onSubmit={e => { 
+              e.preventDefault(); 
+              const fd = new FormData(e.currentTarget);
+              const name = fd.get('name') as string || 'New Parent';
+              const email = fd.get('email') as string || 'parent@example.com';
+              const phone = fd.get('phone') as string || '1234567890';
+              const rel = fd.get('relationship') as string || 'Father';
+              
+              const pId = 'u-p' + Date.now();
+              const profile = { id: pId, full_name: name, email, phone, role: 'parent' as const, avatar_url: '', status: 'active' as const, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+              const parent = { id: 'p' + Date.now(), profile_id: pId, occupation: '', address: '', relationship_to_student: rel, created_at: new Date().toISOString() };
+              const dummyStudent = { id: 'st' + Date.now(), profile_id: 'dummy', admission_no: 'A123', roll_no: 1, class_id: 'c1', section_id: 's1', parent_id: parent.id, blood_group: 'O+', date_of_birth: '2010-01-01', created_at: new Date().toISOString() };
+              
+              addParent(profile, parent, dummyStudent);
+              toast.success('Parent added successfully'); 
+              setDialogOpen(false); 
+            }}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Full Name</Label><Input name="name" required /></div>
+                <div className="space-y-2"><Label>Email</Label><Input type="email" name="email" /></div>
+                <div className="space-y-2"><Label>Phone</Label><Input name="phone" /></div>
+                <div className="space-y-2"><Label>Relationship</Label><Input name="relationship" placeholder="Father/Mother" /></div>
+              </div>
               <div className="flex justify-end gap-3"><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Add Parent</Button></div>
             </form>
           </DialogContent>

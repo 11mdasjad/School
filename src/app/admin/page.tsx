@@ -5,11 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  demoStudents, demoTeachers, demoParents, demoLeaveRequests, demoNotifications,
-  getTodayAttendanceSummary, getMonthlyTrend, getClassWiseComparison, getDefaulterList,
-  getProfileById,
-} from '@/lib/demo-data';
+import { useAppStore } from '@/stores/app-store';
+import { getTodayAttendanceSummary, getMonthlyTrend, getClassWiseComparison, getDefaulterList, getProfileById } from '@/lib/store-helpers';
 import { getAttendanceColor, getInitials, getStatusColor, formatDate } from '@/lib/utils';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -21,12 +18,13 @@ import Link from 'next/link';
 const PIE_COLORS = ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6'];
 
 export default function AdminDashboard() {
+  const { students, teachers, leaveRequests, notifications, attendance } = useAppStore();
   const todayStats = getTodayAttendanceSummary();
   const monthlyTrend = getMonthlyTrend();
   const classComparison = getClassWiseComparison();
   const defaulters = getDefaulterList(75);
-  const pendingLeaves = demoLeaveRequests.filter(l => l.status === 'pending');
-  const recentNotifications = demoNotifications.slice(0, 5);
+  const pendingLeaves = leaveRequests.filter(l => l.status === 'pending');
+  const recentNotifications = notifications.slice(0, 5);
 
   const pieData = [
     { name: 'Present', value: todayStats.present },
@@ -57,8 +55,8 @@ export default function AdminDashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Students" value={demoStudents.length} change="+12 this month" changeType="positive" icon="GraduationCap" color="blue" />
-        <StatCard title="Total Teachers" value={demoTeachers.length} change="Active staff" changeType="neutral" icon="Users" color="purple" />
+        <StatCard title="Total Students" value={students.length} change="+12 this month" changeType="positive" icon="GraduationCap" color="blue" />
+        <StatCard title="Total Teachers" value={teachers.length} change="Active staff" changeType="neutral" icon="Users" color="purple" />
         <StatCard title="Today's Attendance" value={`${todayStats.percentage}%`} change={`${todayStats.present} present`} changeType={todayStats.percentage >= 75 ? 'positive' : 'negative'} icon="CalendarCheck" color="green" />
         <StatCard title="Absent Today" value={todayStats.absent} change={`${todayStats.late} late arrivals`} changeType="negative" icon="AlertTriangle" color="red" />
       </div>
@@ -153,7 +151,7 @@ export default function AdminDashboard() {
                 <p className="text-center text-muted-foreground py-8 text-sm">No pending requests</p>
               ) : (
                 pendingLeaves.map(leave => {
-                  const student = demoStudents.find(s => s.id === leave.student_id);
+                  const student = students.find(s => s.id === leave.student_id);
                   const profile = student ? getProfileById(student.profile_id) : null;
                   return (
                     <div key={leave.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">

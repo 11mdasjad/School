@@ -1,21 +1,23 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { demoSchoolSettings } from '@/lib/demo-data';
 import { School, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState(demoSchoolSettings);
+  const { schoolSettings, updateSchoolSettings } = useAppStore();
+  const [settings, setSettings] = useState(schoolSettings);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success('Settings saved successfully (demo)');
+    updateSchoolSettings(settings);
+    toast.success('Settings saved successfully');
   };
 
   return (

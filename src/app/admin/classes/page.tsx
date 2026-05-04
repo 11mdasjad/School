@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { demoClasses, demoSections, demoStudents } from '@/lib/demo-data';
+
 import { Plus, School, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ClassesPage() {
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings, addClass } = useAppStore();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -29,10 +31,26 @@ export default function ClassesPage() {
            } />
           <DialogContent>
             <DialogHeader><DialogTitle>Add New Class</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Class added (demo)'); setDialogOpen(false); }}>
+            <form className="space-y-4" onSubmit={e => { 
+              e.preventDefault(); 
+              const fd = new FormData(e.currentTarget);
+              const name = fd.get('name') as string || 'Class 10';
+              const grade = parseInt(fd.get('grade') as string) || 10;
+              
+              addClass({
+                id: 'c' + Date.now(),
+                name: name,
+                grade_level: grade,
+                academic_year_id: 'ay1',
+                created_at: new Date().toISOString()
+              });
+              
+              toast.success('Class added successfully'); 
+              setDialogOpen(false); 
+            }}>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Class Name</Label><Input placeholder="Class 9" /></div>
-                <div className="space-y-2"><Label>Grade Level</Label><Input placeholder="9" /></div>
+                <div className="space-y-2"><Label>Class Name</Label><Input name="name" placeholder="Class 9" required /></div>
+                <div className="space-y-2"><Label>Grade Level</Label><Input name="grade" type="number" placeholder="9" required /></div>
               </div>
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
@@ -44,9 +62,9 @@ export default function ClassesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {demoClasses.map(cls => {
-          const sections = demoSections.filter(s => s.class_id === cls.id);
-          const studentCount = demoStudents.filter(s => s.class_id === cls.id).length;
+        {allClasses.map(cls => {
+          const sections = allSections.filter(s => s.class_id === cls.id);
+          const studentCount = allStudents.filter(s => s.class_id === cls.id).length;
 
           return (
             <Card key={cls.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden">
@@ -74,7 +92,7 @@ export default function ClassesPage() {
                     <Badge key={sec.id} variant="outline" className="px-3 py-1">
                       Section {sec.name}
                       <span className="ml-1.5 text-muted-foreground">
-                        ({demoStudents.filter(s => s.section_id === sec.id).length})
+                        ({allStudents.filter(s => s.section_id === sec.id).length})
                       </span>
                     </Badge>
                   ))}

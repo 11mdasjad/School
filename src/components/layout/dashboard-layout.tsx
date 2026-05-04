@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login');
   };
 
-  const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
+  const renderSidebarContent = (mobile = false) => (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={cn(
@@ -135,7 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         "hidden lg:flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 shrink-0",
         collapsed ? "w-[68px]" : "w-[260px]"
       )}>
-        <SidebarContent />
+        {renderSidebarContent(false)}
       </aside>
 
       {/* Main Content */}
@@ -149,7 +149,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Menu className="w-5 h-5" />
               </SheetTrigger>
               <SheetContent side="left" className="w-[280px] p-0">
-                <SidebarContent mobile />
+                {renderSidebarContent(true)}
               </SheetContent>
             </Sheet>
 

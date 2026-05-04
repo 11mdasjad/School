@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,17 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { demoNotifications } from '@/lib/demo-data';
 import { formatDate } from '@/lib/utils';
 import { Plus, Bell, BellDot } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NotificationsPage() {
+  const { notifications: allNotifications, addNotification, markNotificationRead } = useAppStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [notifications, setNotifications] = useState(demoNotifications);
 
   const markRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    markNotificationRead(id);
   };
 
   return (
@@ -29,11 +29,30 @@ export default function NotificationsPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"><Plus className="w-4 h-4 mr-2" /> Send Notification</Button> } />
           <DialogContent><DialogHeader><DialogTitle>Send Notification</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Notification sent (demo)'); setDialogOpen(false); }}>
-              <div className="space-y-2"><Label>Title</Label><Input placeholder="Notification title" /></div>
-              <div className="space-y-2"><Label>Message</Label><Textarea placeholder="Notification message..." rows={4} /></div>
+            <form className="space-y-4" onSubmit={e => { 
+              e.preventDefault(); 
+              const fd = new FormData(e.currentTarget);
+              const title = fd.get('title') as string || 'New Notification';
+              const message = fd.get('message') as string || '';
+              const recipient_role = fd.get('role') as any;
+              
+              addNotification({
+                id: 'n' + Date.now(),
+                title: title,
+                message: message,
+                recipient_role: recipient_role === 'all' ? undefined : recipient_role,
+                created_by: 'u-admin',
+                is_read: false,
+                created_at: new Date().toISOString()
+              });
+              
+              toast.success('Notification sent successfully'); 
+              setDialogOpen(false); 
+            }}>
+              <div className="space-y-2"><Label>Title</Label><Input name="title" placeholder="Notification title" required /></div>
+              <div className="space-y-2"><Label>Message</Label><Textarea name="message" placeholder="Notification message..." rows={4} required /></div>
               <div className="space-y-2"><Label>Send to</Label>
-                <Select><SelectTrigger><SelectValue placeholder="Select recipient" /></SelectTrigger>
+                <Select name="role"><SelectTrigger><SelectValue placeholder="Select recipient" /></SelectTrigger>
                   <SelectContent><SelectItem value="all">All Users</SelectItem><SelectItem value="admin">Admins</SelectItem><SelectItem value="teacher">Teachers</SelectItem><SelectItem value="student">Students</SelectItem><SelectItem value="parent">Parents</SelectItem></SelectContent>
                 </Select>
               </div>
@@ -44,7 +63,7 @@ export default function NotificationsPage() {
       </div>
 
       <div className="space-y-3">
-        {notifications.map(notif => (
+        {allNotifications.map(notif => (
           <Card key={notif.id} className={`border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${!notif.is_read ? 'bg-blue-50/50 dark:bg-blue-950/10 border-l-4 border-l-blue-500' : ''}`} onClick={() => markRead(notif.id)}>
             <CardContent className="p-4 flex items-start gap-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notif.is_read ? 'bg-muted' : 'bg-gradient-to-br from-blue-500 to-indigo-500'}`}>

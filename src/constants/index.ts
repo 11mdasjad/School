@@ -66,12 +66,7 @@ export const NAV_ITEMS: Record<UserRole, { title: string; href: string; icon: st
   ],
 };
 
-export const DEMO_CREDENTIALS: Record<UserRole, { phone: string; password: string; name: string }> = {
-  admin: { phone: '9876543210', password: 'admin123', name: 'Dr. Anita Sharma' },
-  teacher: { phone: '9965092443', password: 'teacher123', name: 'Ms. Riya Goyal' },
-  student: { phone: '7068632731', password: 'student123', name: 'Riya Rastogi' },
-  parent: { phone: '7068632731', password: 'parent123', name: 'Gaurav Rastogi' },
-};
+
 
 export const PERIODS = [
   { value: 1, label: 'Period 1 (8:00 - 8:45)' },

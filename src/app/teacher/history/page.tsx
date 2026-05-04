@@ -1,15 +1,17 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { DataTable, Column } from '@/components/common/data-table';
 import { Badge } from '@/components/ui/badge';
-import { demoAttendance, demoStudents, getProfileById, demoClasses, demoSubjects } from '@/lib/demo-data';
+import { getProfileById } from '@/lib/store-helpers';
 import { getAttendanceColor, formatDate } from '@/lib/utils';
 
 export default function TeacherHistoryPage() {
-  const records = demoAttendance.slice(0, 50).map(a => {
-    const student = demoStudents.find(s => s.id === a.student_id);
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings } = useAppStore();
+  const records = allAttendance.slice(0, 50).map(a => {
+    const student = allStudents.find(s => s.id === a.student_id);
     const profile = student ? getProfileById(student.profile_id) : null;
-    return { ...a, studentName: profile?.full_name || '', className: demoClasses.find(c => c.id === a.class_id)?.name || '', subjectName: demoSubjects.find(s => s.id === a.subject_id)?.name || '' };
+    return { ...a, studentName: profile?.full_name || '', className: allClasses.find(c => c.id === a.class_id)?.name || '', subjectName: allSubjects.find(s => s.id === a.subject_id)?.name || '' };
   });
 
   const columns: Column<typeof records[0]>[] = [

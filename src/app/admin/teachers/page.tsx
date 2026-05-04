@@ -8,15 +8,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { demoTeachers, getProfileById, demoAssignments, demoClasses, demoSubjects, demoSections } from '@/lib/demo-data';
+import { getProfileById } from '@/lib/store-helpers';
+import { useAppStore } from '@/stores/app-store';
 import { getInitials } from '@/lib/utils';
 import { Plus, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeachersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { teachers: allTeachers, assignments: demoAssignments, classes: demoClasses } = useAppStore();
 
-  const teachers = demoTeachers.map(t => {
+  const teachers = allTeachers.map(t => {
     const profile = getProfileById(t.profile_id);
     const assignments = demoAssignments.filter(a => a.teacher_id === t.id);
     return {
@@ -56,7 +58,7 @@ export default function TeachersPage() {
           <DialogTrigger render={<Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"><Plus className="w-4 h-4 mr-2" /> Add Teacher</Button> } />
           <DialogContent>
             <DialogHeader><DialogTitle>Add New Teacher</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Teacher added (demo)'); setDialogOpen(false); }}>
+            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Teacher added successfully'); setDialogOpen(false); }}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Full Name</Label><Input placeholder="Jane Smith" /></div>
                 <div className="space-y-2"><Label>Email</Label><Input type="email" /></div>

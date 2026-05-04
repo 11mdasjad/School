@@ -1,30 +1,33 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { StatCard } from '@/components/common/stat-card';
+import { useAuthStore } from '@/stores/auth-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { demoStudents, demoParents, getProfileById, getStudentAttendanceStats, demoClasses, demoSections, demoAttendance, demoLeaveRequests, demoNotifications } from '@/lib/demo-data';
+import { getProfileById, getStudentAttendanceStats } from '@/lib/store-helpers';
 import { getInitials, getAttendanceColor, getAttendanceDotColor, formatDate, cn } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRight, CalendarCheck, AlertTriangle } from 'lucide-react';
 
 export default function ParentDashboard() {
-  // Demo parent: p1 (Michael Johnson)
-  const parent = demoParents[0];
-  const children = demoStudents.filter(s => s.parent_id === parent.id).map(s => ({
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings } = useAppStore();
+  const { user } = useAuthStore();
+  const parent = allParents.find(p => p.profile_id === user?.id) || allParents[0];
+  const children = allStudents.filter(s => s.parent_id === parent.id).map(s => ({
     ...s,
     profile: getProfileById(s.profile_id)!,
-    class: demoClasses.find(c => c.id === s.class_id)!,
-    section: demoSections.find(sec => sec.id === s.section_id)!,
+    class: allClasses.find(c => c.id === s.class_id)!,
+    section: allSections.find(sec => sec.id === s.section_id)!,
     stats: getStudentAttendanceStats(s.id),
   }));
 
   const totalAbsent = children.reduce((sum, c) => sum + c.stats.absent, 0);
   const avgPercentage = Math.round(children.reduce((sum, c) => sum + c.stats.percentage, 0) / children.length);
-  const myNotifications = demoNotifications.filter(n => !n.recipient_role || n.recipient_role === 'parent').slice(0, 5);
+  const myNotifications = allNotifications.filter(n => !n.recipient_role || n.recipient_role === 'parent').slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -37,7 +40,7 @@ export default function ParentDashboard() {
         <StatCard title="Children" value={children.length} icon="Users" color="blue" />
         <StatCard title="Avg Attendance" value={`${avgPercentage}%`} icon="CalendarCheck" color={avgPercentage >= 75 ? 'green' : 'red'} change={avgPercentage >= 75 ? 'Above minimum' : 'Below threshold'} changeType={avgPercentage >= 75 ? 'positive' : 'negative'} />
         <StatCard title="Total Absences" value={totalAbsent} icon="AlertTriangle" color="red" />
-        <StatCard title="Pending Leaves" value={demoLeaveRequests.filter(l => children.some(c => c.id === l.student_id) && l.status === 'pending').length} icon="FileText" color="amber" />
+        <StatCard title="Pending Leaves" value={allLeaveRequests.filter(l => children.some(c => c.id === l.student_id) && l.status === 'pending').length} icon="FileText" color="amber" />
       </div>
 
       {/* Children Cards */}

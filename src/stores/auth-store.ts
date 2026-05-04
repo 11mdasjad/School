@@ -37,13 +37,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { success: false, error: 'This mobile number is not registered. Please contact the school administration.' };
     }
 
-    // In demo mode, we accept any password format: [role]123
+    // We accept any password format: [role]123 for now since there is no backend integration yet
     // In production, this would validate against hashed passwords
     set({ user: profile, isAuthenticated: true, isLoading: false });
 
     // Store in localStorage for persistence
     if (typeof window !== 'undefined') {
-      localStorage.setItem('demo_user', JSON.stringify(profile));
+      localStorage.setItem('app_user', JSON.stringify(profile));
     }
 
     return { success: true };
@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     set({ user: null, isAuthenticated: false });
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('demo_user');
+      localStorage.removeItem('app_user');
     }
   },
 
@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 // Initialize from localStorage
 if (typeof window !== 'undefined') {
-  const stored = localStorage.getItem('demo_user');
+  const stored = localStorage.getItem('app_user');
   if (stored) {
     try {
       const user = JSON.parse(stored) as Profile;

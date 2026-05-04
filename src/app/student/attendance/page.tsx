@@ -1,13 +1,22 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { demoAttendance, demoStudents, getProfileById } from '@/lib/demo-data';
+import { getProfileById } from '@/lib/store-helpers';
 import { getAttendanceColor, getAttendanceDotColor, formatDate, cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function StudentAttendancePage() {
-  const student = demoStudents[0];
-  const records = demoAttendance.filter(a => a.student_id === student.id).sort((a, b) => b.attendance_date.localeCompare(a.attendance_date));
+  const { students, classes, sections, subjects, teachers, parents, assignments, attendance, leaveRequests, notifications, holidays, schoolSettings } = useAppStore();
+  const { user } = useAuthStore();
+  let student = students.find(s => s.profile_id === user?.id);
+  if (!student && user?.role === 'parent') {
+    const parent = parents.find(p => p.profile_id === user.id);
+    student = students.find(s => s.parent_id === parent?.id);
+  }
+  student = student || students[0];
+  const records = attendance.filter(a => a.student_id === student.id).sort((a, b) => b.attendance_date.localeCompare(a.attendance_date));
 
   // Build calendar data for March 2025
   const year = 2025; const month = 2; // 0-indexed

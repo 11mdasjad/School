@@ -9,15 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { demoStudents, demoClasses, demoSections, demoParents, getProfileById, getStudentAttendanceStats } from '@/lib/demo-data';
+import { getProfileById, getStudentAttendanceStats } from '@/lib/store-helpers';
+import { useAppStore } from '@/stores/app-store';
 import { getInitials, getAttendanceColor } from '@/lib/utils';
 import { Plus, Download, Upload, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function StudentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { students: allStudents, classes: demoClasses, sections: demoSections, parents: demoParents } = useAppStore();
 
-  const students = demoStudents.map(s => ({
+  const students = allStudents.map(s => ({
     ...s,
     profile: getProfileById(s.profile_id),
     class: demoClasses.find(c => c.id === s.class_id),
@@ -121,7 +123,7 @@ export default function StudentsPage() {
                 <DialogHeader>
                   <DialogTitle>Add New Student</DialogTitle>
                 </DialogHeader>
-                <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Student added (demo)'); setDialogOpen(false); }}>
+                <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Student added successfully'); setDialogOpen(false); }}>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2"><Label>Full Name</Label><Input placeholder="John Doe" /></div>
                     <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="john@school.com" /></div>

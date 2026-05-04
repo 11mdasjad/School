@@ -1,5 +1,6 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,12 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { demoHolidays } from '@/lib/demo-data';
 import { formatDate } from '@/lib/utils';
 import { Plus, Calendar, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function HolidaysPage() {
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings, addHoliday } = useAppStore();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -22,10 +23,28 @@ export default function HolidaysPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"><Plus className="w-4 h-4 mr-2" /> Add Holiday</Button> } />
           <DialogContent><DialogHeader><DialogTitle>Add Holiday</DialogTitle></DialogHeader>
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); toast.success('Holiday added (demo)'); setDialogOpen(false); }}>
-              <div className="space-y-2"><Label>Title</Label><Input placeholder="Holiday name" /></div>
-              <div className="space-y-2"><Label>Date</Label><Input type="date" /></div>
-              <div className="space-y-2"><Label>Description</Label><Input placeholder="Description" /></div>
+            <form className="space-y-4" onSubmit={e => { 
+              e.preventDefault(); 
+              const fd = new FormData(e.currentTarget);
+              const title = fd.get('title') as string || 'New Holiday';
+              const date = fd.get('date') as string || new Date().toISOString().split('T')[0];
+              const desc = fd.get('description') as string || '';
+              
+              addHoliday({
+                id: 'h' + Date.now(),
+                title: title,
+                holiday_date: date,
+                description: desc,
+                academic_year_id: 'ay1',
+                created_at: new Date().toISOString()
+              });
+              
+              toast.success('Holiday added successfully'); 
+              setDialogOpen(false); 
+            }}>
+              <div className="space-y-2"><Label>Title</Label><Input name="title" placeholder="Holiday name" required /></div>
+              <div className="space-y-2"><Label>Date</Label><Input name="date" type="date" required /></div>
+              <div className="space-y-2"><Label>Description</Label><Input name="description" placeholder="Description" /></div>
               <div className="flex justify-end gap-3"><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Add Holiday</Button></div>
             </form>
           </DialogContent>
@@ -33,7 +52,7 @@ export default function HolidaysPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {demoHolidays.map(h => (
+        {allHolidays.map(h => (
           <Card key={h.id} className="border-0 shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
             <div className="h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
             <CardContent className="p-5">

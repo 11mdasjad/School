@@ -1,21 +1,23 @@
 'use client';
 
+import { useAppStore } from '@/stores/app-store';
 import { StatCard } from '@/components/common/stat-card';
+import { useAuthStore } from '@/stores/auth-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { demoAssignments, demoClasses, demoSections, demoSubjects, demoStudents, getProfileById, getTodayAttendanceSummary, demoLeaveRequests } from '@/lib/demo-data';
-import { formatDate } from '@/lib/utils';
+import { getTodayAttendanceSummary } from '@/lib/store-helpers';
 import Link from 'next/link';
 import { CalendarCheck, ArrowRight, Users, BookOpen, Clock } from 'lucide-react';
 
 export default function TeacherDashboard() {
+  const { students: allStudents, classes: allClasses, sections: allSections, subjects: allSubjects, teachers: allTeachers, parents: allParents, assignments: allAssignments, attendance: allAttendance, leaveRequests: allLeaveRequests, notifications: allNotifications, holidays: allHolidays, schoolSettings: allSchoolSettings } = useAppStore();
   const todayStats = getTodayAttendanceSummary();
-  // Teacher t1 (James Anderson) assignments
-  const myAssignments = demoAssignments.filter(a => a.teacher_id === 't1');
+  const { user } = useAuthStore();
+  const myAssignments = allAssignments.filter(a => a.teacher_id === user?.id || a.teacher_id === 't1');
   const myClasses = [...new Set(myAssignments.map(a => a.class_id))];
-  const myStudentCount = demoStudents.filter(s => myClasses.includes(s.class_id)).length;
-  const pendingLeaves = demoLeaveRequests.filter(l => l.status === 'pending').slice(0, 3);
+  const myStudentCount = allStudents.filter(s => myClasses.includes(s.class_id)).length;
+  const pendingLeaves = allLeaveRequests.filter(l => l.status === 'pending').slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -52,8 +54,8 @@ export default function TeacherDashboard() {
                     <BookOpen className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-sm">{demoClasses.find(c => c.id === a.class_id)?.name} - Section {demoSections.find(s => s.id === a.section_id)?.name}</p>
-                    <p className="text-xs text-muted-foreground">{demoSubjects.find(s => s.id === a.subject_id)?.name}</p>
+                    <p className="font-semibold text-sm">{allClasses.find(c => c.id === a.class_id)?.name} - Section {allSections.find(s => s.id === a.section_id)?.name}</p>
+                    <p className="text-xs text-muted-foreground">{allSubjects.find(s => s.id === a.subject_id)?.name}</p>
                   </div>
                   <Link href="/teacher/attendance">
                     <Button variant="ghost" size="sm" className="text-xs">Mark <ArrowRight className="w-3 h-3 ml-1" /></Button>

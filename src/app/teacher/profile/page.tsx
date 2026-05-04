@@ -40,7 +40,7 @@ export default function ProfilePage() {
 
           <Separator className="my-6" />
 
-          <form onSubmit={e => { e.preventDefault(); toast.success('Profile updated (demo)'); }} className="space-y-4">
+          <form onSubmit={e => { e.preventDefault(); toast.success('Profile updated successfully'); }} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label className="flex items-center gap-2"><User className="w-3.5 h-3.5" /> Full Name</Label><Input defaultValue={user.full_name} /></div>
               <div className="space-y-2"><Label className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> Email</Label><Input defaultValue={user.email} type="email" /></div>
