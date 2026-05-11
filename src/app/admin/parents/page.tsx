@@ -52,8 +52,8 @@ export default function ParentsPage() {
               
               const pId = 'u-p' + Date.now();
               const profile = { id: pId, full_name: name, email, phone, role: 'parent' as const, avatar_url: '', status: 'active' as const, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-              const parent = { id: 'p' + Date.now(), profile_id: pId, occupation: '', address: '', relationship_to_student: rel, created_at: new Date().toISOString() };
-              const dummyStudent = { id: 'st' + Date.now(), profile_id: 'dummy', admission_no: 'A123', roll_no: 1, class_id: 'c1', section_id: 's1', parent_id: parent.id, blood_group: 'O+', date_of_birth: '2010-01-01', created_at: new Date().toISOString() };
+              const parent = { id: 'p' + Date.now(), profile_id: pId, relationship: rel, created_at: new Date().toISOString() };
+              const dummyStudent = { id: 'st' + Date.now(), profile_id: 'dummy', admission_no: 'A123', roll_no: '1', class_id: 'c1', section_id: 's1', parent_id: parent.id, dob: '2010-01-01', created_at: new Date().toISOString() };
               
               addParent(profile, parent, dummyStudent);
               toast.success('Parent added successfully'); 

@@ -40,7 +40,7 @@ export default function ClassesPage() {
               addClass({
                 id: 'c' + Date.now(),
                 name: name,
-                grade_level: grade,
+                grade_level: String(grade),
                 academic_year_id: 'ay1',
                 created_at: new Date().toISOString()
               });
